@@ -161,7 +161,6 @@ public ZuulFilterResult runFilter() {
 
 我们写自己的过滤器的时候，最常实现的过滤器类型是 `pre` 和 `post`，`pre` 常用来用来进行权限校验等，如果校验失败，并且 `post` 写的不好的， `抛异常` 和 `设置ctx.setSendZuulResponse(false)` 都是无法阻止 `post` 型过滤器执行的。
 
-建议：
 - 一定要注意 过滤器的执行顺序，留意是在内置过滤器之前还是之后执行
 - `shouldFilter()` 的实现，粒度一定经要细，建议 都加上 `(...) && ctx.sendZuulResponse()`  的逻辑，同时抛出异常，终止内置过滤器 和 自定义过滤器 的执行
 - 如果要重定向 ，进行以下设置，这时候 内置过滤器 `LocationRewriteFilter` 会进行处理

@@ -43,17 +43,17 @@ public class ZuulServerAutoConfiguration {
 	@Configuration
 	protected static class ZuulFilterConfiguration {
 
-        /**
-         * 如果Spring 容器中 ZuulFilter 有多个实现类，这里会注入 实现类 Bean 的名称 和 具体的实现类，
-         * 即所有内置 和 自定义的 Filter 都会注入到 filters 变量
-         */
+    /**
+     * 如果Spring 容器中 ZuulFilter 有多个实现类，这里会注入 实现类 Bean 的名称 和 具体的实现类，
+     * 即所有内置 和 自定义的 Filter 都会注入到 filters 变量
+     */
 		@Autowired
 		private Map<String, ZuulFilter> filters;
 
 		@Bean
 		public ZuulFilterInitializer zuulFilterInitializer(
 				CounterFactory counterFactory, TracerFactory tracerFactory
-        ) {
+    ) {
 			...
             // 传入所有 filters ，在 ZuulFilterInitializer 中进行注册
 			return new ZuulFilterInitializer(this.filters, counterFactory, tracerFactory, filterLoader, filterRegistry);
