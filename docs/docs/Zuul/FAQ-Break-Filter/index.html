@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F a Q Break Filter | Spring-Cloud</title>
+
+
+<link rel="stylesheet" href="/Spring-Cloud/book.min.80ce348dabc24f4b988624dd4986625a0cf59ecb530e87b4192da6306e047f04.css">
+
+
+
+
+<link rel="icon" href="/Spring-Cloud/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/Spring-Cloud/">Spring-Cloud</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fSpring-Cloud\2f docs\2fZuul\2f FAQ-Break-Filter\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><p><strong>Gateway</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Gateway/Core/">核心概念</a>
+<br /></li>
+</ul></li>
+
+<li><p><strong>Zuul</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Zuul/Inner-Filter/">内置过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/Zuul-Core-Class/">Zuul 核心类</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/">如何重写响应数据</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/">如何注册 Zuul 过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/">如何中断 Zuul 过滤流程</a>
+
+
+<br /></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/Spring-Cloud/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>F a Q Break Filter</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="如何中断-zuul-过滤流程">如何中断 Zuul 过滤流程</h1>
+
+<p>从 <code>ZuulServletFilter</code> 或 <code>ZuulServlet</code> 可以看出 Zuul 的整体执行流程</p>
+
+<h2 id="zuulservlet">ZuulServlet</h2>
+
+<p>Zuul 官方示例 和 Spring Cloud Zuul 都是通过 <code>Servlet</code> 的形式而不是 <code>Servlet Filter</code> 的形式进行启动的，所以一下以 Servlet 的流程举例：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Override</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">void</span> service(ServletRequest <span style="color:#a6e22e">servletRequest</span>, ServletResponse <span style="color:#a6e22e">servletResponse</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">ServletException</span>, IOException {
+    <span style="color:#66d9ef">try</span> {
+        init((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse);
+
+        RequestContext <span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> RequestContext.<span style="color:#a6e22e">getCurrentContext</span>();
+        <span style="color:#75715e">// 把这个请求标记为 Zuul 引擎处理
+</span><span style="color:#75715e"></span>        context.<span style="color:#a6e22e">setZuulEngineRan</span>();
+
+        <span style="color:#66d9ef">try</span> {
+            <span style="color:#75715e">// per
+</span><span style="color:#75715e"></span>            preRoute();
+        } <span style="color:#66d9ef">catch</span> (ZuulException <span style="color:#a6e22e">e</span>) {
+            error(e); <span style="color:#75715e">// errooooooooooooor
+</span><span style="color:#75715e"></span>            postRoute(); <span style="color:#75715e">// !!!
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">return</span>;
+        }
+        <span style="color:#66d9ef">try</span> {
+            <span style="color:#75715e">// route
+</span><span style="color:#75715e"></span>            route();
+        } <span style="color:#66d9ef">catch</span> (ZuulException <span style="color:#a6e22e">e</span>) {
+            error(e); <span style="color:#75715e">// errooooooooooooor
+</span><span style="color:#75715e"></span>            postRoute(); <span style="color:#75715e">// !!!
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">return</span>;
+        }
+        <span style="color:#66d9ef">try</span> {
+            <span style="color:#75715e">// post
+</span><span style="color:#75715e"></span>            postRoute();
+        } <span style="color:#66d9ef">catch</span> (ZuulException <span style="color:#a6e22e">e</span>) {
+            error(e); <span style="color:#75715e">// errooooooooooooor
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">return</span>;
+        }
+
+    } <span style="color:#66d9ef">catch</span> (Throwable <span style="color:#a6e22e">e</span>) {
+        <span style="color:#75715e">// errooooooooooooor
+</span><span style="color:#75715e"></span>        error(<span style="color:#66d9ef">new</span> ZuulException(e, 500, <span style="color:#e6db74">&#34;UNHANDLED_EXCEPTION_&#34;</span> <span style="color:#f92672">+</span> e.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getName</span>()));
+    } <span style="color:#66d9ef">finally</span> {
+        RequestContext.<span style="color:#a6e22e">getCurrentContext</span>().<span style="color:#a6e22e">unset</span>();
+    }
+}</code></pre></div>
+<h2 id="zuul-过滤器的执行流程">Zuul 过滤器的执行流程</h2>
+
+<h3 id="filterprocessor-runfilters">FilterProcessor # runFilters</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Object</span> runFilters(String <span style="color:#a6e22e">sType</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">Throwable</span> {
+    ...
+    <span style="color:#75715e">// 从 Zuul FilterRegistry 中获取所有指定类型的过滤器，按照 filterOrder 正序排序
+</span><span style="color:#75715e"></span>    List<span style="color:#f92672">&lt;</span>ZuulFilter<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">list</span> <span style="color:#f92672">=</span> FilterLoader.<span style="color:#a6e22e">getInstance</span>().<span style="color:#a6e22e">getFiltersByType</span>(sType);
+    <span style="color:#66d9ef">if</span> (list <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;</span> list.<span style="color:#a6e22e">size</span>(); i<span style="color:#f92672">++</span>) {
+            ZuulFilter <span style="color:#a6e22e">zuulFilter</span> <span style="color:#f92672">=</span> list.<span style="color:#a6e22e">get</span>(i);
+            <span style="color:#75715e">// FilterProcessor # processZuulFilter
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// 遍历指定类型的过滤器(如：所有的 per) 一个一个执行
+</span><span style="color:#75715e"></span>            Object <span style="color:#a6e22e">result</span> <span style="color:#f92672">=</span> processZuulFilter(zuulFilter);
+            <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> result <span style="color:#a6e22e">instanceof</span> Boolean) {
+                bResult <span style="color:#f92672">|=</span> ((Boolean) result);
+            }
+        }
+    }
+    <span style="color:#66d9ef">return</span> bResult;
+}</code></pre></div>
+<h3 id="filterprocessor-processzuulfilter">FilterProcessor # processZuulFilter</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Object</span> processZuulFilter(ZuulFilter <span style="color:#a6e22e">filter</span>) <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">ZuulException</span> {
+	...
+    <span style="color:#66d9ef">try</span> {
+        Throwable <span style="color:#a6e22e">t</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+        ...
+        <span style="color:#75715e">// ZuulFilter # runFilter
+</span><span style="color:#75715e"></span>        ZuulFilterResult <span style="color:#a6e22e">result</span> <span style="color:#f92672">=</span> filter.<span style="color:#a6e22e">runFilter</span>();
+        ExecutionStatus <span style="color:#a6e22e">s</span> <span style="color:#f92672">=</span> result.<span style="color:#a6e22e">getStatus</span>();
+        ...
+        <span style="color:#75715e">// 根据 过滤器的执行状态，记录概要到上下文
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">switch</span> (s) {
+            <span style="color:#66d9ef">case</span> FAILED<span style="color:#f92672">:</span>
+                <span style="color:#75715e">// 如果执行失败，保存异常对象
+</span><span style="color:#75715e"></span>                t <span style="color:#f92672">=</span> result.<span style="color:#a6e22e">getException</span>();
+                ctx.<span style="color:#a6e22e">addFilterExecutionSummary</span>(filterName, ExecutionStatus.<span style="color:#a6e22e">FAILED</span>.<span style="color:#a6e22e">name</span>(), execTime);
+                <span style="color:#66d9ef">break</span>;
+            <span style="color:#66d9ef">case</span> SUCCESS<span style="color:#f92672">:</span>
+                o <span style="color:#f92672">=</span> result.<span style="color:#a6e22e">getResult</span>();
+                ctx.<span style="color:#a6e22e">addFilterExecutionSummary</span>(filterName, ExecutionStatus.<span style="color:#a6e22e">SUCCESS</span>.<span style="color:#a6e22e">name</span>(), execTime);
+                ...
+                <span style="color:#66d9ef">break</span>;
+            <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+                <span style="color:#66d9ef">break</span>;
+        }
+	
+        <span style="color:#75715e">// 如果有异常 抛出异样
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) <span style="color:#66d9ef">throw</span> t;
+
+        usageNotifier.<span style="color:#a6e22e">notify</span>(filter, s);
+        <span style="color:#66d9ef">return</span> o;
+
+    } <span style="color:#66d9ef">catch</span> (Throwable <span style="color:#a6e22e">e</span>) {
+        <span style="color:#75715e">// 把异常包装成 ZuulException 抛出
+</span><span style="color:#75715e"></span>        ...
+    }
+}</code></pre></div>
+<h3 id="zuulfilter-runfilter">ZuulFilter #  runFilter</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ZuulFilterResult</span> runFilter() {
+    ZuulFilterResult <span style="color:#a6e22e">zr</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ZuulFilterResult();
+    <span style="color:#75715e">// Filter 不可用，直接返回 zr
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>isFilterDisabled()) {
+        <span style="color:#75715e">// Filter 不应该执行，标记 状态为 SKIPPED 然后返回
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> (shouldFilter()) {
+            Tracer <span style="color:#a6e22e">t</span> <span style="color:#f92672">=</span> TracerFactory.<span style="color:#a6e22e">instance</span>().<span style="color:#a6e22e">startMicroTracer</span>(<span style="color:#e6db74">&#34;ZUUL::&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getSimpleName</span>());
+            <span style="color:#75715e">// 执行 Filter run() 方法，根据是否抛出异常，标记为成功或者失败状态
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">try</span> {
+                Object <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> run();
+                <span style="color:#75715e">// 标记成功状态
+</span><span style="color:#75715e"></span>                zr <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ZuulFilterResult(res, ExecutionStatus.<span style="color:#a6e22e">SUCCESS</span>);
+            } <span style="color:#66d9ef">catch</span> (Throwable <span style="color:#a6e22e">e</span>) {
+                t.<span style="color:#a6e22e">setName</span>(<span style="color:#e6db74">&#34;ZUUL::&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getSimpleName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; failed&#34;</span>);
+                <span style="color:#75715e">// 标记失败状态
+</span><span style="color:#75715e"></span>                zr <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ZuulFilterResult(ExecutionStatus.<span style="color:#a6e22e">FAILED</span>);
+                zr.<span style="color:#a6e22e">setException</span>(e);
+            } <span style="color:#66d9ef">finally</span> {
+                t.<span style="color:#a6e22e">stopAndLog</span>();
+            }
+        } <span style="color:#66d9ef">else</span> {
+            zr <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ZuulFilterResult(ExecutionStatus.<span style="color:#a6e22e">SKIPPED</span>);
+        }
+    }
+    <span style="color:#66d9ef">return</span> zr;
+}</code></pre></div>
+<h2 id="抛异常">抛异常</h2>
+
+<p>从上面 Zuul 的执行流程可以看出，<strong>抛异常是可以终止 <em>同一个类型</em> 的过滤器执行的</strong>，因为在 <code>FilterProcessor # runFilters</code> 循环执行某个指定类型的过滤器的时候，并没有捕捉异常，这时候如果有异常，循环就直接终止了。</p>
+
+<h2 id="ctx-setsendzuulresponse-false">ctx.setSendZuulResponse(false);</h2>
+
+<p>但是从 Zuul Filter 的整个生命周期(<code>ZuulServlet</code>)来看，在 <code>pre</code> 和 <code>route</code> 这两个阶段 抛异常， <code>post</code> 类型的过滤器，仍然会执行。从 <code>ZuulFilter #  runFilter</code> 中可以看出，除了抛异常外，<code>shouldFilter()</code> 返回 <code>false</code> 过滤器也是不执行的。</p>
+
+<p>查看 Spring Cloud 内置 <code>RibbonRoutingFilter</code> 和 <code>SimpleHostRoutingFilter</code> 的 <code>shouldFilter()</code> 方法，里面都有一段这样的逻辑 <code>(...) &amp;&amp; ctx.sendZuulResponse()</code> ， 所以把 sendZuulResponse 标记为 false，就不会转发到 Origin 了。</p>
+
+<h2 id="总结">总结</h2>
+
+<p>我们写自己的过滤器的时候，最常实现的过滤器类型是 <code>pre</code> 和 <code>post</code>，<code>pre</code> 常用来用来进行权限校验等，如果校验失败，并且 <code>post</code> 写的不好的， <code>抛异常</code> 和 <code>设置ctx.setSendZuulResponse(false)</code> 都是无法阻止 <code>post</code> 型过滤器执行的。</p>
+
+<ul>
+<li>一定要注意 过滤器的执行顺序，留意是在内置过滤器之前还是之后执行</li>
+<li><code>shouldFilter()</code> 的实现，粒度一定经要细，建议 都加上 <code>(...) &amp;&amp; ctx.sendZuulResponse()</code>  的逻辑，同时抛出异常，终止内置过滤器 和 自定义过滤器 的执行</li>
+<li>如果要重定向 ，进行以下设置，这时候 内置过滤器 <code>LocationRewriteFilter</code> 会进行处理
+
+<ul>
+<li><code>ctx.setSendZuulResponse(false);</code></li>
+<li><code>ctx.setResponseStatusCode(301);</code></li>
+<li><code>ctx.addZuulResponseHeader(&quot;Location&quot;, &quot;xxx&quot;);</code></li>
+</ul></li>
+</ul>
+
+<p>突然感觉 <strong>Netflix Zuul 其实是只是一个 框架，还不算一个真正意义上的网关</strong>，zuul-core 并没有实现具体的Filter逻辑；Spring Cloud Zuul 内置了一些的 Filter 实现，具有的基础的代理、转发、重定向 等简单的功能；但是如果要作为一个真正的网关，如统一权限校验、流量控制、缓存、监控等功能，都需要我们自己实现。</p>
+</article>
+
+      
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/Spring-Cloud/commit/dab8d9a413f41e7d554a2fcfa6d6ff757fbdda89" title='Last modified Jan 12, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/calendar.svg" alt="Changed" /> Jan 12, 2020
+    </a>
+  </div>
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/Spring-Cloud/edit/master/HuGo/content/docs/Zuul/FAQ-Break-Filter.md" target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#如何中断-zuul-过滤流程">如何中断 Zuul 过滤流程</a>
+<ul>
+<li><a href="#zuulservlet">ZuulServlet</a></li>
+<li><a href="#zuul-过滤器的执行流程">Zuul 过滤器的执行流程</a>
+<ul>
+<li><a href="#filterprocessor-runfilters">FilterProcessor # runFilters</a></li>
+<li><a href="#filterprocessor-processzuulfilter">FilterProcessor # processZuulFilter</a></li>
+<li><a href="#zuulfilter-runfilter">ZuulFilter #  runFilter</a></li>
+</ul></li>
+<li><a href="#抛异常">抛异常</a></li>
+<li><a href="#ctx-setsendzuulresponse-false">ctx.setSendZuulResponse(false);</a></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

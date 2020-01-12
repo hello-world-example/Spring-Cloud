@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>首页 on Spring-Cloud</title>
+    <link>https://hello-world-example.github.io/Spring-Cloud/</link>
+    <description>Recent content in 首页 on Spring-Cloud</description>
+    <generator>Hugo -- gohugo.io</generator>
+    
+	<atom:link href="https://hello-world-example.github.io/Spring-Cloud/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/_sidebar/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/_sidebar/</guid>
+      <description> Gateway
+ 核心概念   Zuul
+ 内置过滤器 Zuul 核心类 如何重写响应数据 如何注册 Zuul 过滤器 如何中断 Zuul 过滤流程    </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Gateway/Core/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Gateway/Core/</guid>
+      <description> 核心概念 注意事项  基于 Spring Boot 2.x, Spring WebFlux, 和 Project Reactor，不支持同步模式的库 使用 Netty 库，所以不要构建成 war 包放到 Servlet 容器中，要使用 jar 的方式运行  关键词  Route 路由：路由是网关的基本构建模块。它由一个 ID，一个目标 URI，一组谓词和一个过滤器的集合定义。如果聚合谓词为真，则路由匹配。 Predicate 断言：使用 Java 8 Function Predicate，输入类型是 Spring Framework ServerWebExchange，允许开发人员匹配来自 HTTP 请求的任何内容，例如头部或参数。 Filter 过滤器： Spring Framework GatewayFilter 在特定工厂中构建的实例。这里，可以在发送下游请求之前或之后修改请求和响应  pre post   Read More  Spring Cloud Gateway 2.1.0 中文官网文档  </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/</guid>
+      <description>如何中断 Zuul 过滤流程 从 ZuulServletFilter 或 ZuulServlet 可以看出 Zuul 的整体执行流程
+ZuulServlet Zuul 官方示例 和 Spring Cloud Zuul 都是通过 Servlet 的形式而不是 Servlet Filter 的形式进行启动的，所以一下以 Servlet 的流程举例：
+@Override public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException { try { init((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse); RequestContext context = RequestContext.getCurrentContext(); // 把这个请求标记为 Zuul 引擎处理  context.setZuulEngineRan(); try { // per  preRoute(); } catch (ZuulException e) { error(e); // errooooooooooooor  postRoute(); // !</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/</guid>
+      <description>如何注册 Zuul 过滤器 从 官方示例 可以看出
+注册静态 Filter FilterRegistry registry = FilterRegistry.instance(); registry.put(&amp;#34;filterName&amp;#34;, new ZuulFilter() { ... }); 注册 Groovy Filter FilterLoader.getInstance().setCompiler(new GroovyCompiler()); String scriptRoot = System.getProperty(&amp;#34;zuul.filter.root&amp;#34;, &amp;#34;&amp;#34;); if (scriptRoot.length() &amp;gt; 0) { scriptRoot = scriptRoot + File.separator; } try { FilterFileManager.setFilenameFilter(new GroovyFileFilter()); // 每隔5秒遍历一下文件，查看文件是否更新  FilterFileManager.init(5, scriptRoot + &amp;#34;pre&amp;#34;, scriptRoot + &amp;#34;route&amp;#34;, scriptRoot + &amp;#34;post&amp;#34;); } catch (Exception e) { throw new RuntimeException(e); } Spring Cloud 是如何注册的 ZuulServerAutoConfiguration.ZuulFilterConfiguration 类 .</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/</guid>
+      <description>如何重写响应数据 ctx.setResponseDataStream(inputStream) InputStream stream = ctx.getResponseDataStream(); // 无论被转发的页面是什么内容，直接重写以下些字符串 String body = &amp;#34;Hello Zuul&amp;#34;; InputStream inputStream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)); ctx.setResponseDataStream(inputStream); ctx.setResponseBody(string); InputStream stream = ctx.getResponseDataStream(); // commons-io String body = IOUtils.toString(stream, StandardCharsets.UTF_8); body = doSomeThing(body); ctx.setResponseBody(body); ResponseDataStream 和 ResponseBody 的区别 public class SendResponseFilter extends ZuulFilter { ... @Override public String filterType() { return POST_TYPE; } @Override public int filterOrder() { // 1000 	return SEND_RESPONSE_FILTER_ORDER; } @Override public boolean shouldFilter() { RequestContext context = RequestContext.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Inner-Filter/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Inner-Filter/</guid>
+      <description>Spring Cloud Zuul 内置过滤器 下表为 Spring Cloud Zuul 内置过滤器 ，类名前面的数字代表了 Zuul 过滤器的执行顺序，数字越小，越先执行，...zuul.filters.support.FilterConstants 常量类 中定义了 过滤器的类型 和 执行顺序。
+   pre route post error     -3 ServletDetectionFilter 10 RibbonRoutingFilter 900 LocationRewriteFilter 0 SendErrorFilter   -2 Servlet30WrapperFilter 100 SimpleHostRoutingFilter 1000 SendResponseFilter    -1 FormBodyWrapperFilter 500 SendForwardFilter     1 DebugFilter      5 PreDecorationFilter   []()    简要说明 pre  ServletDetectionFilter：检查是否是 Web MVC，并设置isDispatcherServletRequest到上下文 Servlet30WrapperFilter：Zuul 默认的包装器HttpServletRequestWrapper，对请求参数的获取进行了统一化包装，该过滤器获取其原始Request对象，并用 Servlet30RequestWrapper进行重新包装，去除HttpServletRequestWrapper中多余的操作，ctx.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Zuul-Core-Class/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Zuul-Core-Class/</guid>
+      <description> Zuul 核心类  ZuulServletFilter ContextLifecycleFilter  </description>
+    </item>
+    
+  </channel>
+</rss>

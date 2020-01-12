@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/_sidebar/</loc>
+    <lastmod>2020-01-12T17:51:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Gateway/Core/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Inner-Filter/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/Zuul/Zuul-Core-Class/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/docs/</loc>
+  </url>
+  
+  <url>
+    <loc>https://hello-world-example.github.io/Spring-Cloud/</loc>
+    <lastmod>2020-01-12T17:51:00+08:00</lastmod>
+  </url>
+  
+</urlset>

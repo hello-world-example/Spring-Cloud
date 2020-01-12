@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F a Q Registry Zuul Filter | Spring-Cloud</title>
+
+
+<link rel="stylesheet" href="/Spring-Cloud/book.min.80ce348dabc24f4b988624dd4986625a0cf59ecb530e87b4192da6306e047f04.css">
+
+
+
+
+<link rel="icon" href="/Spring-Cloud/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/Spring-Cloud/">Spring-Cloud</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fSpring-Cloud\2f docs\2fZuul\2f FAQ-Registry-Zuul-Filter\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><p><strong>Gateway</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Gateway/Core/">核心概念</a>
+<br /></li>
+</ul></li>
+
+<li><p><strong>Zuul</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Zuul/Inner-Filter/">内置过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/Zuul-Core-Class/">Zuul 核心类</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/">如何重写响应数据</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/">如何注册 Zuul 过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/">如何中断 Zuul 过滤流程</a>
+
+
+<br /></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/Spring-Cloud/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>F a Q Registry Zuul Filter</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="如何注册-zuul-过滤器">如何注册 Zuul 过滤器</h1>
+
+<p>从 <a href="https://github.com/Netflix/zuul/blob/1.x/zuul-simple-webapp/src/main/java/com/netflix/zuul/StartServer.java">官方示例</a> 可以看出</p>
+
+<h2 id="注册静态-filter">注册静态 Filter</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">FilterRegistry <span style="color:#a6e22e">registry</span> <span style="color:#f92672">=</span> FilterRegistry.<span style="color:#a6e22e">instance</span>();
+registry.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;filterName&#34;</span>, <span style="color:#66d9ef">new</span> ZuulFilter() {
+    ...
+});</code></pre></div>
+<h2 id="注册-groovy-filter">注册 Groovy Filter</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">FilterLoader.<span style="color:#a6e22e">getInstance</span>().<span style="color:#a6e22e">setCompiler</span>(<span style="color:#66d9ef">new</span> GroovyCompiler());
+
+String <span style="color:#a6e22e">scriptRoot</span> <span style="color:#f92672">=</span> System.<span style="color:#a6e22e">getProperty</span>(<span style="color:#e6db74">&#34;zuul.filter.root&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>);
+<span style="color:#66d9ef">if</span> (scriptRoot.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">&gt;</span> 0) {
+    scriptRoot <span style="color:#f92672">=</span> scriptRoot <span style="color:#f92672">+</span> File.<span style="color:#a6e22e">separator</span>;
+}
+<span style="color:#66d9ef">try</span> {
+    FilterFileManager.<span style="color:#a6e22e">setFilenameFilter</span>(<span style="color:#66d9ef">new</span> GroovyFileFilter());
+    <span style="color:#75715e">// 每隔5秒遍历一下文件，查看文件是否更新
+</span><span style="color:#75715e"></span>    FilterFileManager.<span style="color:#a6e22e">init</span>(5, scriptRoot <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;pre&#34;</span>, scriptRoot <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;route&#34;</span>, scriptRoot <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;post&#34;</span>);
+} <span style="color:#66d9ef">catch</span> (Exception <span style="color:#a6e22e">e</span>) {
+    <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException(e);
+}</code></pre></div>
+<h2 id="spring-cloud-是如何注册的">Spring Cloud 是如何注册的</h2>
+
+<h3 id="zuulserverautoconfiguration-zuulfilterconfiguration-类">ZuulServerAutoConfiguration.ZuulFilterConfiguration 类</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">...
+
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">class</span> ZuulServerAutoConfiguration {
+	
+    ...
+
+	<span style="color:#a6e22e">@Configuration</span>
+	<span style="color:#66d9ef">protected</span> <span style="color:#a6e22e">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ZuulFilterConfiguration</span> {
+
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * 如果Spring 容器中 ZuulFilter 有多个实现类，这里会注入 实现类 Bean 的名称 和 具体的实现类，
+</span><span style="color:#75715e">     * 即所有内置 和 自定义的 Filter 都会注入到 filters 变量
+</span><span style="color:#75715e">     */</span>
+		<span style="color:#a6e22e">@Autowired</span>
+		<span style="color:#66d9ef">private</span> <span style="color:#a6e22e">Map</span><span style="color:#f92672">&lt;</span>String, ZuulFilter<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">filters</span>;
+
+		<span style="color:#a6e22e">@Bean</span>
+		<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ZuulFilterInitializer</span> zuulFilterInitializer(
+				CounterFactory <span style="color:#a6e22e">counterFactory</span>, TracerFactory <span style="color:#a6e22e">tracerFactory</span>
+    ) {
+			...
+            <span style="color:#75715e">// 传入所有 filters ，在 ZuulFilterInitializer 中进行注册
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> ZuulFilterInitializer(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">filters</span>, counterFactory, tracerFactory, filterLoader, filterRegistry);
+		}
+
+	}
+    
+    ...
+        
+}</code></pre></div>
+<h3 id="zuulfilterinitializer-类">ZuulFilterInitializer 类</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">class</span> ZuulFilterInitializer {
+	
+    ...
+    
+	<span style="color:#66d9ef">private</span> <span style="color:#a6e22e">final</span> FilterRegistry <span style="color:#a6e22e">filterRegistry</span>;
+
+	...
+
+	<span style="color:#a6e22e">@PostConstruct</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">void</span> contextInitialized() {
+		
+		...
+		
+		<span style="color:#66d9ef">for</span> (Map.<span style="color:#a6e22e">Entry</span><span style="color:#f92672">&lt;</span>String, ZuulFilter<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">entry</span> <span style="color:#f92672">:</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">filters</span>.<span style="color:#a6e22e">entrySet</span>()) {
+            <span style="color:#75715e">// 循环所有 filters 进行注册
+</span><span style="color:#75715e"></span>			filterRegistry.<span style="color:#a6e22e">put</span>(entry.<span style="color:#a6e22e">getKey</span>(), entry.<span style="color:#a6e22e">getValue</span>());
+		}
+	}
+    
+    ...
+    
+}</code></pre></div></article>
+
+      
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/Spring-Cloud/commit/dab8d9a413f41e7d554a2fcfa6d6ff757fbdda89" title='Last modified Jan 12, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/calendar.svg" alt="Changed" /> Jan 12, 2020
+    </a>
+  </div>
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/Spring-Cloud/edit/master/HuGo/content/docs/Zuul/FAQ-Registry-Zuul-Filter.md" target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#如何注册-zuul-过滤器">如何注册 Zuul 过滤器</a>
+<ul>
+<li><a href="#注册静态-filter">注册静态 Filter</a></li>
+<li><a href="#注册-groovy-filter">注册 Groovy Filter</a></li>
+<li><a href="#spring-cloud-是如何注册的">Spring Cloud 是如何注册的</a>
+<ul>
+<li><a href="#zuulserverautoconfiguration-zuulfilterconfiguration-类">ZuulServerAutoConfiguration.ZuulFilterConfiguration 类</a></li>
+<li><a href="#zuulfilterinitializer-类">ZuulFilterInitializer 类</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

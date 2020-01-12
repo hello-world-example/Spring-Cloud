@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F a Q Rewrite Response | Spring-Cloud</title>
+
+
+<link rel="stylesheet" href="/Spring-Cloud/book.min.80ce348dabc24f4b988624dd4986625a0cf59ecb530e87b4192da6306e047f04.css">
+
+
+
+
+<link rel="icon" href="/Spring-Cloud/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/Spring-Cloud/">Spring-Cloud</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fSpring-Cloud\2f docs\2fZuul\2f FAQ-Rewrite-Response\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><p><strong>Gateway</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Gateway/Core/">核心概念</a>
+<br /></li>
+</ul></li>
+
+<li><p><strong>Zuul</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Zuul/Inner-Filter/">内置过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/Zuul-Core-Class/">Zuul 核心类</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/">如何重写响应数据</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/">如何注册 Zuul 过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/">如何中断 Zuul 过滤流程</a>
+
+
+<br /></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/Spring-Cloud/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>F a Q Rewrite Response</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="如何重写响应数据">如何重写响应数据</h1>
+
+<h2 id="ctx-setresponsedatastream-inputstream">ctx.setResponseDataStream(inputStream)</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">InputStream <span style="color:#a6e22e">stream</span> <span style="color:#f92672">=</span> ctx.<span style="color:#a6e22e">getResponseDataStream</span>();
+
+<span style="color:#75715e">// 无论被转发的页面是什么内容，直接重写以下些字符串
+</span><span style="color:#75715e"></span>String <span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello Zuul&#34;</span>;
+
+InputStream <span style="color:#a6e22e">inputStream</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayInputStream(body.<span style="color:#a6e22e">getBytes</span>(StandardCharsets.<span style="color:#a6e22e">UTF_8</span>));
+ctx.<span style="color:#a6e22e">setResponseDataStream</span>(inputStream);</code></pre></div>
+<h2 id="ctx-setresponsebody-string">ctx.setResponseBody(string);</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">InputStream <span style="color:#a6e22e">stream</span> <span style="color:#f92672">=</span> ctx.<span style="color:#a6e22e">getResponseDataStream</span>();
+
+<span style="color:#75715e">// commons-io
+</span><span style="color:#75715e"></span>String <span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> IOUtils.<span style="color:#a6e22e">toString</span>(stream, StandardCharsets.<span style="color:#a6e22e">UTF_8</span>);
+body <span style="color:#f92672">=</span> doSomeThing(body);
+
+ctx.<span style="color:#a6e22e">setResponseBody</span>(body);</code></pre></div>
+<h2 id="responsedatastream-和-responsebody-的区别">ResponseDataStream 和 ResponseBody 的区别</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">class</span> SendResponseFilter <span style="color:#a6e22e">extends</span> ZuulFilter {
+	
+    ...
+    
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">String</span> filterType() {
+		<span style="color:#66d9ef">return</span> POST_TYPE;
+	}
+
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">int</span> filterOrder() {
+        <span style="color:#75715e">// 1000
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">return</span> SEND_RESPONSE_FILTER_ORDER;
+	}
+
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">boolean</span> shouldFilter() {
+		RequestContext <span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> RequestContext.<span style="color:#a6e22e">getCurrentContext</span>();
+        <span style="color:#75715e">// 没有异常
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">return</span> context.<span style="color:#a6e22e">getThrowable</span>() <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>
+            	<span style="color:#75715e">// 并且 ZuulResponseHeaders 不为空
+</span><span style="color:#75715e"></span>            	<span style="color:#75715e">// 或 ResponseDataStream || ResponseBody 不为空
+</span><span style="color:#75715e"></span>				<span style="color:#f92672">&amp;&amp;</span> (<span style="color:#f92672">!</span>context.<span style="color:#a6e22e">getZuulResponseHeaders</span>().<span style="color:#a6e22e">isEmpty</span>()
+					<span style="color:#f92672">||</span> context.<span style="color:#a6e22e">getResponseDataStream</span>() <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>
+					<span style="color:#f92672">||</span> context.<span style="color:#a6e22e">getResponseBody</span>() <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>);
+	}
+
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Object</span> run() {
+		...
+        writeResponse();
+		...
+	}
+
+	<span style="color:#66d9ef">private</span> <span style="color:#a6e22e">void</span> writeResponse() <span style="color:#66d9ef">throws</span> <span style="color:#a6e22e">Exception</span> {
+		...
+		OutputStream <span style="color:#a6e22e">outStream</span> <span style="color:#f92672">=</span> servletResponse.<span style="color:#a6e22e">getOutputStream</span>();
+		InputStream <span style="color:#a6e22e">is</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+		<span style="color:#66d9ef">try</span> {
+            <span style="color:#75715e">// 如果 ResponseBody 有数据，直接把流写入 Response OutputStream
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> (RequestContext.<span style="color:#a6e22e">getCurrentContext</span>().<span style="color:#a6e22e">getResponseBody</span>() <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+				String <span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> RequestContext.<span style="color:#a6e22e">getCurrentContext</span>().<span style="color:#a6e22e">getResponseBody</span>();
+				writeResponse(
+						<span style="color:#66d9ef">new</span> ByteArrayInputStream(
+								body.<span style="color:#a6e22e">getBytes</span>(servletResponse.<span style="color:#a6e22e">getCharacterEncoding</span>())),
+						outStream);
+				<span style="color:#66d9ef">return</span>;
+			}
+            
+            <span style="color:#75715e">// 判断是否是 gzip 压缩
+</span><span style="color:#75715e"></span>			...
+                
+			is <span style="color:#f92672">=</span> context.<span style="color:#a6e22e">getResponseDataStream</span>();
+			InputStream <span style="color:#a6e22e">inputStream</span> <span style="color:#f92672">=</span> is;
+			<span style="color:#66d9ef">if</span> (is <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+				<span style="color:#66d9ef">if</span> (context.<span style="color:#a6e22e">sendZuulResponse</span>()) {
+					<span style="color:#66d9ef">if</span> (context.<span style="color:#a6e22e">getResponseGZipped</span>() <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>isGzipRequested) {
+						<span style="color:#75715e">// 对流进行 gzip 解压缩
+</span><span style="color:#75715e"></span>                        ... 
+					}
+					<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (context.<span style="color:#a6e22e">getResponseGZipped</span>() <span style="color:#f92672">&amp;&amp;</span> isGzipRequested) {
+						servletResponse.<span style="color:#a6e22e">setHeader</span>(ZuulHeaders.<span style="color:#a6e22e">CONTENT_ENCODING</span>, <span style="color:#e6db74">&#34;gzip&#34;</span>);
+					}
+                    <span style="color:#75715e">// 把流写入 Response OutputStream
+</span><span style="color:#75715e"></span>					writeResponse(inputStream, outStream);
+				}
+			}
+		} <span style="color:#66d9ef">finally</span> {
+			<span style="color:#75715e">// 关闭资源
+</span><span style="color:#75715e"></span>		}
+	}
+
+    ...
+
+}</code></pre></div>
+<p>从 源码 可以看出 ResponseDataStream 支持 gzip 压缩，ResponseBody 直接返回，没有进行特殊处理</p>
+</article>
+
+      
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/Spring-Cloud/commit/dab8d9a413f41e7d554a2fcfa6d6ff757fbdda89" title='Last modified Jan 12, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/calendar.svg" alt="Changed" /> Jan 12, 2020
+    </a>
+  </div>
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/Spring-Cloud/edit/master/HuGo/content/docs/Zuul/FAQ-Rewrite-Response.md" target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#如何重写响应数据">如何重写响应数据</a>
+<ul>
+<li><a href="#ctx-setresponsedatastream-inputstream">ctx.setResponseDataStream(inputStream)</a></li>
+<li><a href="#ctx-setresponsebody-string">ctx.setResponseBody(string);</a></li>
+<li><a href="#responsedatastream-和-responsebody-的区别">ResponseDataStream 和 ResponseBody 的区别</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>

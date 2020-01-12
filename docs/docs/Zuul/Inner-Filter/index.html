@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inner Filter | Spring-Cloud</title>
+
+
+<link rel="stylesheet" href="/Spring-Cloud/book.min.80ce348dabc24f4b988624dd4986625a0cf59ecb530e87b4192da6306e047f04.css">
+
+
+
+
+<link rel="icon" href="/Spring-Cloud/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+
+    <aside class="book-menu fixed">
+      <nav>
+<h2 class="book-brand">
+  <a href="https://hello-world-example.github.io/Spring-Cloud/">Spring-Cloud</a>
+</h2>
+
+
+
+
+
+
+    
+  
+  
+  
+
+  <style>
+  nav ul a[href$="\2fSpring-Cloud\2f docs\2fZuul\2fInner-Filter\2f "] {
+      color: #004ed0;
+  }
+  </style>
+
+<ul>
+<li><p><strong>Gateway</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Gateway/Core/">核心概念</a>
+<br /></li>
+</ul></li>
+
+<li><p><strong>Zuul</strong></p>
+
+<ul>
+<li><a href="/Spring-Cloud/docs/Zuul/Inner-Filter/">内置过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/Zuul-Core-Class/">Zuul 核心类</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Rewrite-Response/">如何重写响应数据</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Registry-Zuul-Filter/">如何注册 Zuul 过滤器</a></li>
+<li><a href="/Spring-Cloud/docs/Zuul/FAQ-Break-Filter/">如何中断 Zuul 过滤流程</a>
+
+
+<br /></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+
+</nav>
+
+
+<script>
+(function() {
+  var menu = document.querySelector("aside.book-menu nav");
+  addEventListener("beforeunload", function(event) {
+    localStorage.setItem("menu.scrollTop", menu.scrollTop);
+  });
+  menu.scrollTop = localStorage.getItem("menu.scrollTop");
+})();
+</script>
+
+    </aside>
+
+    <div class="book-page">
+      <header class="flex align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/Spring-Cloud/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>Inner Filter</strong>
+</header>
+
+      
+<article class="markdown">
+
+<h1 id="spring-cloud-zuul-内置过滤器">Spring Cloud Zuul 内置过滤器</h1>
+
+<p>下表为 Spring Cloud Zuul 内置过滤器 ，类名前面的数字代表了 Zuul 过滤器的执行顺序，<strong>数字越小，越先执行</strong>，<code>...zuul.filters.support.FilterConstants</code> 常量类 中定义了 过滤器的类型 和 执行顺序。</p>
+
+<table>
+<thead>
+<tr>
+<th>pre</th>
+<th>route</th>
+<th>post</th>
+<th>error</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>-3  ServletDetectionFilter</td>
+<td>10   RibbonRoutingFilter</td>
+<td>900  LocationRewriteFilter</td>
+<td>0  SendErrorFilter</td>
+</tr>
+
+<tr>
+<td>-2  Servlet30WrapperFilter</td>
+<td>100 SimpleHostRoutingFilter</td>
+<td>1000  SendResponseFilter</td>
+<td></td>
+</tr>
+
+<tr>
+<td>-1  FormBodyWrapperFilter</td>
+<td>500 SendForwardFilter</td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>1   DebugFilter</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td>5   PreDecorationFilter</td>
+<td></td>
+<td></td>
+<td>[]()</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="简要说明">简要说明</h2>
+
+<h2 id="pre">pre</h2>
+
+<ul>
+<li><strong><code>ServletDetectionFilter</code></strong>：检查是否是 Web MVC，并设置<code>isDispatcherServletRequest</code>到上下文</li>
+<li><strong><code>Servlet30WrapperFilter</code></strong>：Zuul 默认的包装器<code>HttpServletRequestWrapper</code>，对请求参数的获取进行了统一化包装，该过滤器获取其原始Request对象，并用 <code>Servlet30RequestWrapper</code>进行重新包装，去除<code>HttpServletRequestWrapper</code>中多余的操作，<code>ctx.getRequest()</code> 返回的 <code>HttpServletRequest</code> 的实现是 <code>Servlet30RequestWrapper</code></li>
+<li><strong><code>FormBodyWrapperFilter</code></strong>：如果是表单提交，用<code>FormBodyRequestWrapper</code>包装Request，目的是解析表单数据重新编码，这时 <code>ctx.getRequest()</code> 返回的 <code>HttpServletRequest</code> 的实现是 <code>FormBodyRequestWrapper</code></li>
+<li><strong><code>DebugFilter</code></strong>：如果设置了<code>zuul.debug.request=true</code> ，或在请求时 加上<code>debug=true</code>的参数，过滤器会进行如下操作 <code>ctx.setDebugRouting(true);</code>、<code>ctx.setDebugRequest(true);</code></li>
+<li>_<strong><code>PreDecorationFilter</code></strong>_：填充了大量的上下文 和 请求头 信息，在 <code>@EnableZuulProxy</code> 注解下生效</li>
+</ul>
+
+<h2 id="route">route</h2>
+
+<ul>
+<li>_<strong><code>RibbonRoutingFilter</code></strong>_：该过滤器使用Ribbon，Hystrix 和可插拔的HTTP客户端发送请求，<code>routeHost</code> 为空&amp;&amp; <code>serviceId</code> 不为空的时候执行</li>
+<li>_<strong><code>SimpleHostRoutingFilter</code></strong>_：真正实现地址转发，其实质是调用 <code>HttpClient</code> 进行请求，<code>routeHost</code> 不为空的时候执行</li>
+<li><code>SendForwardFilter</code>：使用<code>RequestDispatcher</code>转发请求，转发位置存储在上下文<code>forward.to</code> 中</li>
+</ul>
+
+<h2 id="post">post</h2>
+
+<ul>
+<li><strong><code>LocationRewriteFilter</code></strong>：对 状态是 <code>301</code> ，相应头中有 <code>Location</code> 的相应进行处理</li>
+<li><strong><code>SendResponseFilter</code></strong>：将服务的响应数据写入当前响应</li>
+</ul>
+
+<h2 id="error">error</h2>
+
+<ul>
+<li><strong><code>SendErrorFilter</code></strong>：默认转发到<code>/error</code>，可以设置<code>error.path</code>属性修改默认的转发路径</li>
+</ul>
+
+<h2 id="过滤器类型">过滤器类型</h2>
+
+<p>下面是几种标准过滤器类型，与请求的生命周期相对应</p>
+
+<ul>
+<li><code>pre</code> 在路由到 Origin 之前执行。常见用法如：权限校验、记录日志等</li>
+<li><code>route</code> 将请求路由到 Origin 。使用 Apache HttpClient 或 Netflix Ribbon 构建和发送原始 HTTP 请求</li>
+<li><code>post</code> 在请求被路由到 Origin 执行执行。常见用法如：设置 HTTP 响应头，统计指标、返回相应数据等</li>
+<li><code>error</code> 当其中一个阶段发生错误时执行</li>
+</ul>
+
+<p>除了标准的过滤器类型外，我们还可以创建自定义的过滤器类型。例如，有个自定义的 <code>static</code> 类型，直接生成相应数据，而不转发请求到 Origin。</p>
+
+<p><img src="https://camo.githubusercontent.com/4eb7754152028cdebd5c09d1c6f5acc7683f0094/687474703a2f2f6e6574666c69782e6769746875622e696f2f7a75756c2f696d616765732f7a75756c2d726571756573742d6c6966656379636c652e706e67" alt="Zuul Request Lifecycle" /></p>
+
+<h2 id="zuul-原生过滤器扩展">Zuul 原生过滤器扩展</h2>
+
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>filterType</th>
+<th>filterOrder</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>SurgicalDebugFilter</td>
+<td>pre</td>
+<td>99</td>
+<td>允许将特定请求路由到单独的调试集群或主机</td>
+</tr>
+
+<tr>
+<td>StaticResponseFilter</td>
+<td>static</td>
+<td>0</td>
+<td>允许从 Zuul 本身生成响应，而不是将请求转发到 Origin</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+<li><a href="https://www.slahser.com/2016/10/26/API%E7%BD%91%E5%85%B3-Zuul%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB-filters/">Api网关 Zuul源码解读 Filters</a></li>
+<li><a href="http://www.itmuch.com/spring-cloud/zuul/zuul-filter-in-spring-cloud/">Spring Cloud内置的Zuul过滤器详解</a></li>
+<li><a href="https://github.com/Netflix/zuul/wiki/How-it-Works">How it Works</a></li>
+<li><a href="https://github.com/Netflix/zuul/wiki/zuul-simple-webapp">zuul simple webapp</a></li>
+</ul>
+</article>
+
+      
+<div class="book-footer justify-between">
+  
+  <div>
+    
+    <a href="https://github.com/hello-world-example/Spring-Cloud/commit/dab8d9a413f41e7d554a2fcfa6d6ff757fbdda89" title='Last modified Jan 12, 2020 by kailbin' target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/calendar.svg" alt="Changed" /> Jan 12, 2020
+    </a>
+  </div>
+  
+  
+  <div>
+    <a href="https://github.com/hello-world-example/Spring-Cloud/edit/master/HuGo/content/docs/Zuul/Inner-Filter.md" target="_blank" rel="noopener">
+      <img src="/Spring-Cloud/svg/edit.svg" alt="Edit" /> Edit this page
+    </a>
+  </div>
+  
+</div>
+
+
+      
+    </div>
+
+    
+  
+
+  <aside class="book-toc level-3 fixed">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#spring-cloud-zuul-内置过滤器">Spring Cloud Zuul 内置过滤器</a>
+<ul>
+<li><a href="#简要说明">简要说明</a></li>
+<li><a href="#pre">pre</a></li>
+<li><a href="#route">route</a></li>
+<li><a href="#post">post</a></li>
+<li><a href="#error">error</a></li>
+<li><a href="#过滤器类型">过滤器类型</a></li>
+<li><a href="#zuul-原生过滤器扩展">Zuul 原生过滤器扩展</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </aside>
+
+
+
+  </main>
+  
+  
+  
+</body>
+
+</html>
