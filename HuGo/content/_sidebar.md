@@ -5,6 +5,7 @@ headless: true
 
 - **Gateway** 
     - [核心概念]({{< relref "/docs/Gateway/Core.md" >}})
+    - [GatewayEndpoint]({{< relref "/docs/Gateway/GatewayEndpoint.md" >}})
     
 - **Zuul**
 
@@ -15,7 +16,7 @@ headless: true
     - [如何中断 Zuul 过滤流程]({{< relref "/docs/Zuul/FAQ-Break-Filter.md" >}})
 
 
-    
+​    
 
 
 

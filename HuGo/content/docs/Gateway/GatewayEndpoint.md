@@ -2,12 +2,27 @@
 
 
 
+## 添加依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+
+
+## 开启 gateway endpoint
+
 ```properties
 # 开启 GatewayEndpoint
 management.endpoints.web.exposure.include=gateway,mappings
 ```
 
 
+
+##  All endpoints
 
 | Class                             | Endpoint                                              | 简介                         |
 | --------------------------------- | ----------------------------------------------------- | ---------------------------- |
@@ -25,4 +40,4 @@ management.endpoints.web.exposure.include=gateway,mappings
 
 ## Read More
 
-- [Spring Cloud Gateway 管理API](https://www.cnblogs.com/wgslucky/p/11758958.html)
+- [15. Actuator API](https://cloud.spring.io/spring-cloud-gateway/reference/html/#actuator-api)

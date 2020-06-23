@@ -93,8 +93,10 @@ public class RouteDefinition {
   
   private URI uri;
 
+  // 断言
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
+  // 过滤器
 	private List<FilterDefinition> filters = new ArrayList<>();
 
 	private Map<String, Object> metadata = new HashMap<>();
